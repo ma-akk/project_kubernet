@@ -1,0 +1,30 @@
+server {
+     		listen 80;
+     		return 301 https://$host$request_uri;
+ 	}
+server {
+    		listen 443 ssl;
+
+    		ssl_certificate /etc/ssl/gtresa.crt;
+    		ssl_certificate_key /etc/ssl/gtresa.key;
+
+		 	error_page 497 https://$host:$server_port$request_uri;
+    		index index.html;
+		location / {
+			try_files $uri $uri/ =404;
+		}
+		location /wordpress {
+        		return 307 http://192.168.99.101:5050;
+    		}
+		location /phpmyadmin/ {
+            		rewrite ^/phpmyadmin(/.*)$ $1 break;
+        		proxy_set_header Host $host;
+        		proxy_set_header X-Real-IP $remote_addr;
+        		proxy_set_header X-Forwarded-Proto https;
+        		proxy_set_header X-Forwarded-For $remote_addr;
+        		proxy_pass http://192.168.99.101:5000;
+    		}
+		location ~ \.php$ {
+		return 301 http://$host/phpmyadmin/;
+		}
+}
